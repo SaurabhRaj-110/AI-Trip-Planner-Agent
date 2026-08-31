@@ -1,10 +1,6 @@
-# TripAI Agent
+# Trip Assistant Agent
 
-![TripAI UI Concept](https://img.shields.io/badge/UI-Cyberpunk_Dark_Theme-00ff41.svg?style=flat-square)
-![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg?style=flat-square)
-![Streamlit](https://img.shields.io/badge/streamlit-1.40+-FF4B4B.svg?style=flat-square)
-
-TripAI is an intelligent, autonomous agent designed to handle complex, multi-day group trip planning. Built with a sleek, dark-themed UI (using Streamlit) and powered by the Gemini API, it dynamically plans itineraries by balancing budgets, energy levels, and time constraints.
+Trip Assistant is an intelligent, autonomous agent designed to handle complex, multi-day group trip planning. Built with a sleek, dark-themed UI (using Streamlit) and powered by the Gemini API, it dynamically plans itineraries by balancing budgets, energy levels, and time constraints.
 
 It also intelligently replans on the fly when unexpected events occur (e.g., bad weather, someone dropping out, or budget changes) using a deterministic solver to guarantee optimal fairness.
 
