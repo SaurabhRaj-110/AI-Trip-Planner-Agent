@@ -5,7 +5,11 @@ Run with:  python main.py          (auto-launches Streamlit)
 """
 import sys
 import os
-
+import pandas as pd
+import streamlit as st
+from datetime import datetime
+from agent.runner import Agent
+from styles import CUSTOM_CSS, HEADER_HTML, WELCOME_HTML
 
 def _running_in_streamlit() -> bool:
     try:
@@ -29,12 +33,34 @@ if not _running_in_streamlit():
 
 
 # ═══════════════════════════════════════════════════════════
+#  DEFAULT TEMPLATE DATA
+# ═══════════════════════════════════════════════════════════
+
+if "default_users" not in st.session_state:
+    st.session_state.default_users = pd.DataFrame([
+        {"Name": "Alice", "Budget": 100, "Energy": 80, "Interests": "ADVENTURE, FOOD"},
+        {"Name": "Bob", "Budget": 80, "Energy": 60, "Interests": "CULTURE, FOOD"},
+        {"Name": "Cara", "Budget": 120, "Energy": 70, "Interests": "NATURE, FOOD"},
+    ])
+
+if "default_activities" not in st.session_state:
+    st.session_state.default_activities = pd.DataFrame([
+        {"ID": 1, "Name": "Museum", "Cost": 30, "Duration": 3, "Energy": 20, "Tag": "CULTURE"},
+        {"ID": 2, "Name": "Hike", "Cost": 40, "Duration": 5, "Energy": 50, "Tag": "ADVENTURE"},
+        {"ID": 3, "Name": "Cafe", "Cost": 20, "Duration": 2, "Energy": 10, "Tag": "FOOD"},
+        {"ID": 4, "Name": "Park", "Cost": 25, "Duration": 3, "Energy": 15, "Tag": "NATURE"},
+        {"ID": 5, "Name": "Club", "Cost": 50, "Duration": 4, "Energy": 40, "Tag": "NIGHTLIFE"},
+    ])
+
+if "default_events" not in st.session_state:
+    st.session_state.default_events = pd.DataFrame([
+        {"Type": "WEATHER", "Day": 2, "Target": "ADVENTURE", "Value": 0}
+    ])
+
+
+# ═══════════════════════════════════════════════════════════
 #  STREAMLIT APP
 # ═══════════════════════════════════════════════════════════
-import streamlit as st
-from datetime import datetime
-from agent.runner import Agent
-from styles import CUSTOM_CSS, HEADER_HTML, WELCOME_HTML, FLOATING_BOT_HTML
 
 # ── Page config ──
 st.set_page_config(
@@ -61,68 +87,68 @@ time_now = datetime.now().strftime("%I:%M %p")
 st.markdown(WELCOME_HTML.format(time=time_now), unsafe_allow_html=True)
 
 
-# ── Quick-action buttons (2-column grid, before first interaction) ──
-def _handle_quick_action(text: str):
-    """Send a quick-action as a user message and get the agent reply."""
-    ts = datetime.now().strftime("%I:%M %p")
-    st.session_state.messages.append({"role": "user", "content": text, "time": ts})
-    with st.spinner("Computing..."):
+# ── Trip Configuration Template ──
+with st.expander("📝 Trip Configuration Template", expanded=(len(st.session_state.messages) == 0)):
+    st.markdown("<div style='color: #8a9a8a; margin-bottom: 20px; font-size: 14px;'>Adjust your trip constraints below. These settings will be parsed strictly to compute the absolute optimal itinerary.</div>", unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2)
+    days = col1.number_input("Total Days (D)", min_value=1, value=2)
+    hours = col2.number_input("Hours per Day (H)", min_value=1, value=8)
+
+    st.write("### 👥 Group Members")
+    users_df = st.data_editor(st.session_state.default_users, num_rows="dynamic", use_container_width=True)
+
+    st.write("### 🎟️ Activities Catalog")
+    activities_df = st.data_editor(st.session_state.default_activities, num_rows="dynamic", use_container_width=True)
+
+    st.write("### ⚡ Interruption Events (Optional)")
+    st.markdown("<div style='color: #8a9a8a; margin-bottom: 10px; font-size: 13px;'>Valid Types: WEATHER, DROP, FATIGUE, BUDGET</div>", unsafe_allow_html=True)
+    events_df = st.data_editor(st.session_state.default_events, num_rows="dynamic", use_container_width=True)
+
+    if st.button("⚡ Generate Optimal Itinerary", use_container_width=True):
+        ts = datetime.now().strftime("%I:%M %p")
+        
+        # ── Parse and compile strict string ──
         try:
-            reply = st.session_state.agent.chat_with_user(text)
-        except Exception as exc:
-            reply = f"Error: {exc}"
-    st.session_state.messages.append({"role": "assistant", "content": reply, "time": ts})
-    st.rerun()
+            lines = [f"{len(users_df)} {days} {hours}"]
+            
+            for _, row in users_df.iterrows():
+                interests_str = str(row['Interests']).replace(',', ' ').strip()
+                interests = interests_str.split() if interests_str else []
+                lines.append(f"{row['Name']} {row['Budget']} {row['Energy']} {len(interests)} {' '.join(interests)}")
+            
+            lines.append(str(len(activities_df)))
+            for _, row in activities_df.iterrows():
+                lines.append(f"{row['ID']} {row['Name']} {row['Cost']} {row['Duration']} {row['Energy']} {row['Tag']}")
+            
+            # Events
+            valid_events = []
+            for _, row in events_df.iterrows():
+                etype = str(row['Type']).strip()
+                if etype: # If not empty
+                    val_str = str(int(row['Value'])) if pd.notna(row['Value']) and str(row['Value']) != '0' else ""
+                    valid_events.append(f"{etype} {row['Day']} {row['Target']} {val_str}".strip())
+                    
+            lines.append(str(len(valid_events)))
+            lines.extend(valid_events)
+            
+            raw_input = "\n".join(lines)
+            
+            # ── Feedback in Chat ──
+            user_msg = f"Generate an itinerary for {len(users_df)} travelers over {days} days based on the configuration template."
+            st.session_state.messages.append({"role": "user", "content": user_msg, "time": ts})
+            
+            with st.spinner("Computing mathematical optimum..."):
+                reply = st.session_state.agent.chat_with_user(raw_input)
+            
+            st.session_state.messages.append({"role": "assistant", "content": reply, "time": ts})
+            st.rerun()
+            
+        except Exception as e:
+            st.error(f"Configuration Error: {e}. Please check your tables for missing values.")
 
 
-if not st.session_state.messages:
-    # Row 1 — two columns
-    c1, c2 = st.columns(2)
-    with c1:
-        if st.button("\u2728  Best plan for Day 3", key="qa1", use_container_width=True):
-            _handle_quick_action("Best plan for Day 3")
-    with c2:
-        if st.button("\U0001f4c5  What's our plan tomorrow?", key="qa2", use_container_width=True):
-            _handle_quick_action("What's our plan for tomorrow?")
-
-    # Row 2 — two columns
-    c3, c4 = st.columns(2)
-    with c3:
-        if st.button("\u25c7  Replan after an event", key="qa3", use_container_width=True):
-            _handle_quick_action("Replan after an event")
-    with c4:
-        if st.button("\U0001f4cb  Check budget summary", key="qa4", use_container_width=True):
-            _handle_quick_action("Check budget summary")
-
-    # Row 3 — full width
-    if st.button("\u26a1  Check group energy levels", key="qa5", use_container_width=True):
-        _handle_quick_action("Check group energy levels")
-
-
-# ── Chat history ──
+# ── Chat history (Results) ──
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
-
-
-# ── Chat input ──
-if prompt := st.chat_input("Ask anything about your trip..."):
-    ts = datetime.now().strftime("%I:%M %p")
-
-    st.session_state.messages.append({"role": "user", "content": prompt, "time": ts})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-    with st.chat_message("assistant"):
-        with st.spinner("Computing optimal itinerary..."):
-            try:
-                reply = st.session_state.agent.chat_with_user(prompt)
-            except Exception as exc:
-                reply = f"Error: {exc}"
-            st.markdown(reply)
-
-    st.session_state.messages.append({"role": "assistant", "content": reply, "time": ts})
-
-
-# ── Floating chat icon ──
-st.markdown(FLOATING_BOT_HTML, unsafe_allow_html=True)

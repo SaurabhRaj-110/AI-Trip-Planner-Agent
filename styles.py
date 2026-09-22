@@ -34,7 +34,7 @@ html, body, .stApp {
 
 /* ===== TYPOGRAPHY ===== */
 .stApp,
-.stApp p, .stApp span, .stApp div,
+.stApp p,
 .stApp label, .stApp li,
 .stApp td, .stApp th {
     font-family: 'Georgia Pro', Georgia, 'Noto Serif', 'Times New Roman', serif !important;
@@ -342,35 +342,46 @@ html, body, .stApp {
 ::-webkit-scrollbar-thumb:hover { background: #2a4a2a; }
 
 /* ═══════════════════════════════════════
-   FLOATING CHAT ICON
+   EXPANDER & INPUTS
    ═══════════════════════════════════════ */
-.floating-chat {
-    position: fixed;
-    bottom: 90px; right: 32px;
-    z-index: 9999;
-    pointer-events: none;
+[data-testid="stExpander"] {
+    background: #0d1117 !important;
+    border: 1px solid #1e2e1e !important;
+    border-radius: 8px !important;
+    margin-bottom: 24px !important;
 }
-.floating-chat .fc-circle {
-    width: 52px; height: 52px;
-    border-radius: 50%;
-    background: #00ff41;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-    box-shadow: 0 4px 20px rgba(0, 255, 65, 0.25);
-    position: relative;
+[data-testid="stExpander"] summary {
+    background: #12161c !important;
+    color: #e0e8e0 !important;
+    border-bottom: 1px solid #1e2e1e !important;
 }
-.floating-chat .fc-circle .bubble {
-    font-size: 24px;
-    line-height: 1;
-    filter: brightness(0);
+[data-testid="stExpander"] summary p {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #00ff41 !important;
+    font-family: 'Georgia Pro', Georgia, serif !important;
 }
-.floating-chat .fc-indicator {
-    position: absolute;
-    top: -2px; right: -2px;
-    width: 12px; height: 12px;
-    background: #00ff41;
-    border: 2px solid #080a0e;
-    border-radius: 50%;
+[data-testid="stExpanderDetails"] {
+    padding: 20px !important;
+}
+
+/* Number inputs and general inputs inside the template */
+.stNumberInput > div > div > input {
+    color: #00ff41 !important;
+    background: #12161c !important;
+    border: 1px solid #1e2e1e !important;
+    font-family: 'Consolas', monospace !important;
+}
+.stNumberInput label {
+    color: #a0b0a0 !important;
+    font-family: 'Georgia Pro', Georgia, serif !important;
+}
+
+/* Dataframe/data_editor */
+[data-testid="stDataFrame"] {
+    border: 1px solid #1e2e1e !important;
+    border-radius: 6px !important;
+    overflow: hidden !important;
 }
 """
 
@@ -379,8 +390,8 @@ html, body, .stApp {
 #  HTML TEMPLATES
 # ═══════════════════════════════════════════════════════════
 
-# 12 dots for the decorative grid (4 columns x 3 rows)
-_DOTS = '<span></span>' * 12
+# 12 dots for the decorative grid (3 columns x 2 rows)
+_DOTS = '<span></span>' * 6
 
 HEADER_HTML = (
     '<div class="tripai-hdr">'
@@ -397,10 +408,9 @@ WELCOME_HTML = (
     '<div class="welcome-card">'
     '  <div class="greet">Hey <span class="name">Saurabh!</span> \U0001f44b</div>'
     '  <div class="desc">'
-    "    I've analyzed your group preferences,<br>"
-    '    budgets and constraints.'
+    "    Glad, To see you here<br>"
     '  </div>'
-    '  <div class="ask">How can I help you plan today?</div>'
+    '  <div class="ask">How can I help you plan your day?</div>'
     '  <div class="wtime">{time}</div>'
     '</div>'
 )

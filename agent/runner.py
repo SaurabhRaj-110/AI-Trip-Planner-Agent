@@ -7,6 +7,7 @@ from tools.trip_tool import calculate_optimal_itinerary
 
 load_dotenv()
 
+
 class Agent:
     def __init__(self):
         # Initialize the new genai client
@@ -14,11 +15,11 @@ class Agent:
         
         # Create a persistent chat session with automatic function execution
         self.chat = self.client.chats.create(
-            model="gemini-3.6-flash",  # Latest Flash model (high quota, fast)
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_PROMPT,
-                tools=[calculate_optimal_itinerary],
-                temperature=0.0
+            model = "gemini-3.6-flash",  
+            config = types.GenerateContentConfig(
+                system_instruction = SYSTEM_PROMPT,
+                tools = [calculate_optimal_itinerary],
+                temperature = 0.0
             )
         )
 
