@@ -6,20 +6,20 @@ It also intelligently replans on the fly when unexpected events occur (e.g., bad
 
 ## Features
 
+- **Structured Trip Configuration UI:** Say goodbye to prompting guesswork. Input your travelers, budgets, energy levels, and catalog of activities via sleek, interactive data grids.
 - **Cyberpunk / Clean Dark Theme:** A beautiful, responsive chat interface styled with custom CSS, matching modern dark-mode aesthetics.
-- **Natural Language Understanding:** Ask the agent questions normally (e.g., *"What's our plan for tomorrow?"* or *"Bob just dropped out of the trip"*).
 - **Deterministic Solver Engine:** Under the hood, the agent translates your constraints into a mathematical optimization problem, maximizing group satisfaction within strict time, budget, and energy limits.
-- **Dynamic Replanning:** Adjusts the itinerary instantly if a constraint changes midway through the trip.
-- **Local Tool Execution:** Uses Gemini's Tool Calling to execute the Python `solver` locally, ensuring fast and accurate results.
+- **Dynamic Replanning:** Add unexpected events (like bad weather, someone dropping out, or budget changes) directly to the events grid and instantly recalculate the optimal trip.
+- **Local Tool Execution:** Uses Gemini's Tool Calling to execute the Python `solver` locally, ensuring fast, deterministic, and accurate mathematical results while keeping a conversational output.
 
 ## Project Structure
 
 ```text
 trip-agent/
 │
-├── main.py                 # Streamlit entry point & UI layout
+├── main.py                 # Streamlit entry point (Template UI & Chat)
 ├── styles.py               # Custom CSS & HTML templates for the dark theme
-├── requirements.txt        # Python dependencies
+├── requirements.txt        # Python dependencies (Streamlit, Pandas, etc.)
 ├── .env                    # Environment variables (API Keys)
 │
 ├── agent/                  # AI & LLM Logic
@@ -37,8 +37,8 @@ trip-agent/
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/trip-agent.git
-cd trip-agent
+git clone https://github.com/SaurabhRaj-110/AI-Trip-Planner-Agent.git
+cd AI-Trip-Planner-Agent
 ```
 
 ### 2. Create a virtual environment (Optional but recommended)
@@ -67,11 +67,11 @@ python main.py
 
 ## How it Works
 
-1. **Input:** The user types a natural language request in the chat UI.
-2. **LLM Processing:** The `Agent` (powered by Gemini) parses the constraints and determines if the itinerary needs to be built or updated.
-3. **Tool Execution:** If a plan is needed, the LLM calls the `calculate_optimal_itinerary` tool, passing a strict, formalized text format.
-4. **Solver:** `planner.py` parses the formatted text, calculates combinations of activities, applies fairness constraints (budget/energy/time), breaks ties lexicographically, and returns the mathematically optimal plan.
-5. **Output:** The LLM receives the solver's output, translates it into the styled `// PLAN GENERATED` Markdown format, and displays it in the Streamlit UI.
+1. **Input:** The user configures the trip parameters (Travelers, Activities, Interruption Events) using the interactive `Trip Configuration Template` tables at the top of the app.
+2. **Data Compilation:** Once "Generate Optimal Itinerary" is clicked, the app extracts the pandas dataframe rows and strictly compiles them into the precise textual format required by the deterministic solver.
+3. **LLM Delegation:** The compiled string is passed to the `Agent` (powered by Gemini), which recognizes the strict data format and delegates the math to the `calculate_optimal_itinerary` tool.
+4. **Solver:** `planner.py` calculates all valid combinations of activities, applies fairness constraints (budget/energy/time), breaks ties lexicographically, and returns the mathematically optimal plan.
+5. **Output:** The LLM receives the solver's output, translates it into the styled `// PLAN GENERATED` Markdown format, and displays it in the Streamlit chat UI.
 
 ## License
 
